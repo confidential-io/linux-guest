@@ -839,6 +839,31 @@ static void __init x86_report_nx(void)
 	}
 }
 
+/* HACK for X86: Load DTB from the kernel command line. 
+ * 1. Appropriate kernel commandline should be passed `dtb=0xXXXXX`
+ * 2. QEMU should have the appropriate flags to map the DTB into memory (`-loader file=mydtb.dtb,addr=0xXXXXX`)
+ * 3. This sometimes fails if the memory region is clobbered :)
+ * */
+static void __init parse_initial_dtb_addr(void)
+{
+
+	char *p;
+	/* unsigned long initial_dtb = 0; */
+	p = strstr(command_line, "dtb=");
+	if (p) {
+		p += 4; // skip "dtb="
+		initial_dtb = simple_strtoull(p, NULL, 0);
+	}
+	pr_info("Using DTB passed at physical address 0x%llx\n", initial_dtb);
+	if (!initial_dtb)
+		goto err;
+
+	return;
+err:
+	/* What's the point of life? */
+	panic("Failed to load DTB\n");
+}
+
 /*
  * Determine if we were loaded by an EFI loader.  If so, then we have also been
  * passed the efi memmap, systab, etc., so we should use these data structures
@@ -1161,6 +1186,8 @@ void __init setup_arch(char **cmdline_p)
 	early_acpi_boot_init();
 	x86_init.mpparse.early_parse_smp_cfg();
 
+	parse_initial_dtb_addr();
+	/* CONFIO: now we let dtb naturally be registered initialized */
 	x86_flattree_get_config();
 
 	initmem_init();

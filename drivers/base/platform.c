@@ -181,11 +181,14 @@ int platform_get_irq_optional(struct platform_device *dev, unsigned int num)
 	struct fwnode_handle *fwnode = dev_fwnode(&dev->dev);
 	struct resource *r;
 
+#ifdef CONFIO_HACK
+	/* HACK: irq domains is not working for x86, so we skip it here. The driver must setup IRQ resource manually through */
 	if (is_of_node(fwnode)) {
 		ret = of_irq_get(to_of_node(fwnode), num);
 		if (ret > 0 || ret == -EPROBE_DEFER)
 			goto out;
 	}
+#endif
 
 	r = platform_get_resource(dev, IORESOURCE_IRQ, num);
 	if (is_acpi_device_node(fwnode)) {
