@@ -336,6 +336,13 @@ SECTIONS
 	RUNTIME_CONST_VARIABLES
 	RUNTIME_CONST(ptr, USER_PTR_MAX)
 
+#ifdef CONFIG_X86_ELF_APPENDED_DTB
+	STRUCT_ALIGN();
+	.appended_dtb : AT(ADDR(.appended_dtb) - LOAD_OFFSET) {
+		*(.appended_dtb)
+		KEEP(*(.appended_dtb))
+	}
+#endif
 	. = ALIGN(PAGE_SIZE);
 
 	/* freed after init ends here */

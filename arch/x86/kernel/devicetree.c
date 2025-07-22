@@ -289,6 +289,10 @@ static void __init x86_dtb_parse_smp_config(void)
 	dtb_apic_setup();
 }
 
+#ifdef CONFIG_X86_ELF_APPENDED_DTB
+extern char __appended_dtb[0x100000];
+#endif /* CONFIG_MIPS_ELF_APPENDED_DTB */
+
 void __init x86_flattree_get_config(void)
 {
 #ifdef CONFIG_OF_EARLY_FLATTREE
@@ -308,6 +312,16 @@ void __init x86_flattree_get_config(void)
 
 		early_init_dt_verify(dt, __pa(dt));
 	}
+#ifdef CONFIG_X86_ELF_APPENDED_DTB
+	if (!fdt_check_header(&__appended_dtb)) {
+		dt = __appended_dtb;
+		pr_info("Using appended Device Tree.\n");
+		early_init_dt_verify(dt, __pa(dt));
+	} else {
+		pr_info("Cannot use appended Device Tree.\n");
+	}
+#endif
+
 
 	unflatten_and_copy_device_tree();
 

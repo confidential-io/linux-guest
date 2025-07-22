@@ -80,6 +80,9 @@ unsigned long _brk_end   = (unsigned long)__brk_base;
 
 struct boot_params boot_params;
 
+#ifdef CONFIG_X86_ELF_APPENDED_DTB
+char __section(".appended_dtb") __appended_dtb[0x100000];
+#endif /* CONFIG_X86_ELF_APPENDED_DTB */
 /*
  * These are the four main kernel memory regions, we put them into
  * the resource tree so that kdump tools and other debugging tools
@@ -846,7 +849,6 @@ static void __init x86_report_nx(void)
  * */
 static void __init parse_initial_dtb_addr(void)
 {
-
 	char *p;
 	/* unsigned long initial_dtb = 0; */
 	p = strstr(command_line, "dtb=");
@@ -854,14 +856,15 @@ static void __init parse_initial_dtb_addr(void)
 		p += 4; // skip "dtb="
 		initial_dtb = simple_strtoull(p, NULL, 0);
 	}
-	pr_info("Using DTB passed at physical address 0x%llx\n", initial_dtb);
+	printk(KERN_INFO "Using DTB passed at physical address 0x%llx\n", initial_dtb);
 	if (!initial_dtb)
 		goto err;
 
 	return;
 err:
 	/* What's the point of life? */
-	panic("Failed to load DTB\n");
+	/* panic("Failed to load DTB\n"); */
+	return;
 }
 
 /*
@@ -1186,7 +1189,7 @@ void __init setup_arch(char **cmdline_p)
 	early_acpi_boot_init();
 	x86_init.mpparse.early_parse_smp_cfg();
 
-	parse_initial_dtb_addr();
+	/* parse_initial_dtb_addr(); */
 	/* CONFIO: now we let dtb naturally be registered initialized */
 	x86_flattree_get_config();
 

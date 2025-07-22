@@ -36,6 +36,7 @@ config X86_64
 	select ARCH_HAS_ELFCORE_COMPAT
 	select ZONE_DMA32
 	select EXECMEM if DYNAMIC_FTRACE
+	select USE_OF
 
 config FORCE_DYNAMIC_FTRACE
 	def_bool y
@@ -2284,6 +2285,54 @@ choice
 		  will be reported to dmesg, so that either old or
 		  malicious userspace programs can be identified.
 
+endchoice
+
+config USE_OF
+	bool
+	select OF
+	select OF_EARLY_FLATTREE
+	select IRQ_DOMAIN
+
+choice
+	prompt "Kernel appended dtb support"
+	depends on USE_OF
+	default X86_NO_APPENDED_DTB
+
+	config X86_NO_APPENDED_DTB
+		bool "None"
+		help
+		  Do not enable appended dtb support.
+
+	config X86_ELF_APPENDED_DTB
+		bool "vmlinux"
+		help
+		  With this option, the boot code will look for a device tree binary
+		  DTB) included in the vmlinux ELF section .appended_dtb. By default
+		  it is empty and the DTB can be appended using binutils command
+		  objcopy:
+
+		    objcopy --update-section .appended_dtb=<filename>.dtb vmlinux
+
+		  This is meant as a backward compatibility convenience for those
+		  systems with a bootloader that can't be upgraded to accommodate
+		  the documented boot protocol using a device tree.
+
+	config X86_RAW_APPENDED_DTB
+		bool "vmlinux.bin or vmlinuz.bin"
+		help
+		  With this option, the boot code will look for a device tree binary
+		  DTB) appended to raw vmlinux.bin or vmlinuz.bin.
+		  (e.g. cat vmlinux.bin <filename>.dtb > vmlinux_w_dtb).
+
+		  This is meant as a backward compatibility convenience for those
+		  systems with a bootloader that can't be upgraded to accommodate
+		  the documented boot protocol using a device tree.
+
+		  Beware that there is very little in terms of protection against
+		  this option being confused by leftover garbage in memory that might
+		  look like a DTB header after a reboot if no actual DTB is appended
+		  to vmlinux.bin.  Do not leave this option active in a production kernel
+		  if you don't intend to always append a DTB.
 endchoice
 
 config CMDLINE_BOOL
