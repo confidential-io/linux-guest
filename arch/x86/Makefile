@@ -313,9 +313,9 @@ all: bzImage
 # KBUILD_IMAGE specify target image being built
 KBUILD_IMAGE := $(boot)/bzImage
 
-DTB_EMBED := ../assets/virtio-mmio.dtb
+DTB_EMBED := ../dts/q35.dtb
 
-bzImage: vmlinux
+bzImage: vmlinux $(DTB_EMBED)
 ifeq ($(CONFIG_X86_DECODER_SELFTEST),y)
 	$(Q)$(MAKE) $(build)=arch/x86/tools posttest
 endif
